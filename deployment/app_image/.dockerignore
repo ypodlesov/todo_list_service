@@ -1,0 +1,6 @@
+.git*
+*.log
+*.env
+design
+helpers
+README.md

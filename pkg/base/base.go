@@ -1,4 +1,4 @@
-package main
+package base
 
 import (
 	"log"
@@ -46,7 +46,7 @@ func processUpdate(bot *tgbotapi.BotAPI, update *tgbotapi.Update) {
 	}
 }
 
-func main() {
+func Run() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_API_TOKEN"))
 	if err != nil {
 		log.Panic(err)
