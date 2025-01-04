@@ -1,5 +1,5 @@
 IMAGE = ghcr.io/ypodlesov/todo_list_service/base_image:latest
-BASE_IMAGE_DIR = "ci_cd/base_image"
+BASE_IMAGE_DIR = "deployment/base_image"
 
 .PHONY: auth
 auth:
