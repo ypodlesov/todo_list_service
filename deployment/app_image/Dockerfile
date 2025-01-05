@@ -15,19 +15,14 @@ RUN go build -o /bin/todo_list_service cmd/todo_list_service/main.go
 
 RUN rm -rf /build
 
-# Environments
-ARG TELEGRAM_API_TOKEN
-ENV TELEGRAM_API_TOKEN=$TELEGRAM_API_TOKEN
-
-ARG TELEGRAM_API_ID
-ENV TELEGRAM_API_ID=$TELEGRAM_API_ID
-
-ARG TELEGRAM_API_HASH
-ENV TELEGRAM_API_HASH=$TELEGRAM_API_HASH
-
 # Run app
 WORKDIR /app
 
-RUN telegram-bot-api --api-id=$TELEGRAM_API_ID --api-hash=$TELEGRAM_API_HASH --local &
+COPY pkg/storage/postgres/migrations ./migrations
+COPY configs/prod.yaml .
+
+# Environments
+ARG CONFIG_PATH="/app/prod.yaml"
+ENV CONFIG_PATH=$CONFIG_PATH
 
 CMD ["/bin/todo_list_service"]

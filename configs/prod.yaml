@@ -1,10 +1,12 @@
 env: "prod"
 
 pg_config:
-  host: "localhost"
-  port: "5432"
+  host: "158.160.26.238"
+  port: 5432
   user: "todo_list"
   password: "pg"
+  db_name: "todo_list"
+  migrations_dir: "/app/migrations"
 
 http_server:
   address: "0.0.0.0:8080"
