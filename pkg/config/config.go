@@ -8,9 +8,10 @@ import (
 )
 
 type Config struct {
-	Env        string `yaml:"env" env-default:"local"`
-	HTTPServer `yaml:"http_server"`
-	PgConfig   `yaml:"pg_config"`
+	Env           string `yaml:"env" env-default:"local"`
+	HTTPServer    `yaml:"http_server"`
+	PgConfig      `yaml:"pg_config"`
+	MetricsConfig `yaml:"metrics_config"`
 }
 
 type HTTPServer struct {
@@ -20,9 +21,13 @@ type HTTPServer struct {
 }
 type PgConfig struct {
 	Host     string `yaml:"host" env-default:"localhost"`
-	Port     string `yaml:"port" env-default:"5432"`
+	Port     int    `yaml:"port" env-default:"5432"`
 	User     string `yaml:"user" env-default:"todo_list"`
 	Password string `yaml:"password" env-default:"pg"`
+	DbName   string `yaml:"db_name" env-default:"todo_list"`
+}
+
+type MetricsConfig struct {
 }
 
 func MustLoad() *Config {
