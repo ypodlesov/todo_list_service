@@ -10,13 +10,11 @@ on:
 
 env:
   PROJECT_PATH: ${{ github.workspace }}
-  TELEGRAM_API_TOKEN: ${{ secrets.TELEGRAM_API_TOKEN }}
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  TELEGRAM_API_ID: ${{ secrets.TELEGRAM_API_ID }}
-  TELEGRAM_API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
   PROD_HOST: ${{ vars.PROD_HOST }}
   PROD_USERNAME: ${{ vars.PROD_USERNAME }}
   APP_IMAGE: "ghcr.io/ypodlesov/todo_list_service/todo-list-image:latest"
+  CONFIG_PATH: ${{ vars.CONFIG_PATH }}
 
 jobs:
   build:

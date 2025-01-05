@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	_ "github.com/lib/pq"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,6 +13,10 @@ import (
 	mwLogger "todo_list_service/pkg/http-server/middleware/logger"
 	"todo_list_service/pkg/metrics"
 	"todo_list_service/pkg/storage/postgres"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	_ "github.com/lib/pq"
 )
 
 func main() {
