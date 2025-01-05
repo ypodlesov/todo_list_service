@@ -23,7 +23,7 @@ import (
 
 func main() {
 	cfg := config.MustLoad()
-	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	log.Info(
 		"starting todo_list service",

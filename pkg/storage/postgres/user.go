@@ -27,3 +27,15 @@ func (s *Storage) CreateUser(username, hashedPassword, email string) (userID int
 	return
 
 }
+
+func (s *Storage) GetUser(username string) (userID int, hashedPassword string, err error) {
+
+	const op = "storage.postgres.GetUser"
+
+	row := s.db.QueryRow("SELECT id, password FROM users WHERE username = $1", username)
+	if err := row.Scan(&userID, &hashedPassword); err != nil {
+		return 0, "", fmt.Errorf("%s: failed to scan user data: %w", op, err)
+	}
+
+	return
+}

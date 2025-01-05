@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"errors"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/render"
 	"golang.org/x/crypto/bcrypt"
 	"io"
@@ -18,47 +19,52 @@ type SignUpRequest struct {
 
 func NewSignUp(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		const op = "handlers.NewSignUp"
+		log := slog.With(
+			slog.String("op", op),
+			slog.String("request_id", middleware.GetReqID(r.Context())),
+		)
 
 		var req SignUpRequest
 		err := render.DecodeJSON(r.Body, &req)
 
-		if errors.Is(err, io.EOF) {
-			handlerCtx.Log.Error("request body is empty")
-			render.JSON(w, r, "empty request")
-			return
-		}
 		if err != nil {
-			handlerCtx.Log.Error("failed to decode request body")
+			if errors.Is(err, io.EOF) {
+				log.Error("request body is empty")
+				render.JSON(w, r, "empty request")
+				return
+			}
+			log.Error("failed to decode request body")
 			render.JSON(w, r, "failed to decode request")
 			return
 		}
 
-		handlerCtx.Log.Info("request body decoded", slog.Any("request", req))
+		log.Info("request body decoded", slog.Any("request", req))
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
-			handlerCtx.Log.Error("failed to hash password", slog.Any("error", err))
+			log.Error("failed to hash password", slog.Any("error", err))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
 		userID, err := handlerCtx.Storage.CreateUser(req.Username, string(hashedPassword), req.Username)
 		if err != nil {
-			handlerCtx.Log.Error("failed to create user", slog.Any("error", err))
+			log.Error("failed to create user", slog.Any("error", err))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
 		session, err := handlerCtx.Store.Get(r, auth.SessionName)
 		if err != nil {
-			handlerCtx.Log.Error("failed to get session", slog.Any("error", err))
+			log.Error("failed to get session", slog.Any("error", err))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
 		session.Values["user_id"] = userID
 		if err := session.Save(r, w); err != nil {
-			handlerCtx.Log.Error("failed to save session", slog.Any("error", err))
+			log.Error("failed to save session", slog.Any("error", err))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
