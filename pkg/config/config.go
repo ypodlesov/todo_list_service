@@ -19,13 +19,21 @@ type HTTPServer struct {
 	Address     string        `yaml:"address" env-default:"0.0.0.0:8080"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"30s"`
+	Session     Session       `yaml:"session"`
+}
+
+type Session struct {
+	SecretKey string `yaml:"secret_key" env-default:"secret_key"`
+	Secure    bool   `yaml:"secure" env-default:"false"`
+	MaxAge    int    `yaml:"max_age" env-default:"604800"`
 }
 type PgConfig struct {
-	Host     string `yaml:"host" env-default:"localhost"`
-	Port     int    `yaml:"port" env-default:"5432"`
-	User     string `yaml:"user" env-default:"todo_list"`
-	Password string `yaml:"password" env-default:"pg"`
-	DbName   string `yaml:"db_name" env-default:"todo_list"`
+	Host          string `yaml:"host" env-default:"localhost"`
+	Port          int    `yaml:"port" env-default:"5432"`
+	User          string `yaml:"user" env-default:"todo_list"`
+	Password      string `yaml:"password" env-default:"pg"`
+	DbName        string `yaml:"db_name" env-default:"todo_list"`
+	MigrationsDir string `yaml:"migrations_dir" env-default:"./migrations"`
 }
 
 type MetricsConfig struct {

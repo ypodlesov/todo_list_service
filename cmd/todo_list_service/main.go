@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/gorilla/sessions"
 	"log/slog"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"time"
 	"todo_list_service/pkg/config"
 	"todo_list_service/pkg/http-server/handlers"
+	"todo_list_service/pkg/http-server/middleware/auth"
 	mwLogger "todo_list_service/pkg/http-server/middleware/logger"
 	"todo_list_service/pkg/metrics"
 	"todo_list_service/pkg/storage/postgres"
@@ -33,7 +35,17 @@ func main() {
 	storage, err := postgres.New(&cfg.PgConfig)
 
 	if err != nil {
+		log.Error("failed to setup storage", err)
 		panic("cannot setup storage")
+	}
+
+	store := sessions.NewCookieStore([]byte(cfg.Session.SecretKey))
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   cfg.HTTPServer.Session.MaxAge,
+		HttpOnly: true,
+		Secure:   cfg.HTTPServer.Session.Secure,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	router := chi.NewRouter()
@@ -46,15 +58,23 @@ func main() {
 	handlerCtx := &handlers.HandlerContext{
 		Log:     log,
 		Storage: storage,
+		Store:   store,
 	}
 
 	router.Post("/sign_up", handlers.NewSignUp(handlerCtx))
 	router.Post("/sign_in", handlers.NewSignIn(handlerCtx))
 	router.Post("/logout", handlers.NewLogout(handlerCtx))
-	router.Get("/get_tasks", handlers.NewGetTasks(handlerCtx))
-	router.Get("/get_task", handlers.NewGetTask(handlerCtx))
-	router.Post("/create_task", handlers.NewCreateTask(handlerCtx))
-	router.Post("/update_task", handlers.NewUpdateTask(handlerCtx))
+
+	authMiddleware := auth.NewAuthMiddleware(store)
+
+	router.Group(func(r chi.Router) {
+		r.Use(authMiddleware.Middleware)
+
+		r.Get("/get_tasks", handlers.NewGetTasks(handlerCtx))
+		r.Get("/get_task", handlers.NewGetTask(handlerCtx))
+		r.Post("/create_task", handlers.NewCreateTask(handlerCtx))
+		r.Post("/update_task", handlers.NewUpdateTask(handlerCtx))
+	})
 
 	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
 

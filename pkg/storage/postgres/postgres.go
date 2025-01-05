@@ -35,7 +35,7 @@ func New(cfg *config.PgConfig) (*Storage, error) {
 
 	//TODO: add logger
 	//TODO: add migrations dir to config
-	if err := storage.applyMigrations("./migrations"); err != nil {
+	if err := storage.applyMigrations(cfg.MigrationsDir); err != nil {
 		return nil, err
 	}
 
