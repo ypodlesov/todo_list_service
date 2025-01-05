@@ -1,0 +1,12 @@
+env: "prod"
+
+pg_config:
+  host: "localhost"
+  port: "5432"
+  user: "todo_list"
+  password: "pg"
+
+http_server:
+  address: "0.0.0.0:8080"
+  timeout: 4s
+  idle_timeout: 30s
