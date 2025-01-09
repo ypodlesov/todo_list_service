@@ -25,7 +25,7 @@ func New(cfg *config.PgConfig) (*Storage, error) {
 
 	db, err := sql.Open("postgres", generateUrlFromConfig(cfg))
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", op, err)
+		return nil, fmt.Errorf(`'%s: %w'`, op, err)
 	}
 
 	storage := &Storage{

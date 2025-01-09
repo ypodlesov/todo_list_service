@@ -12,7 +12,7 @@ func (s *Storage) applyMigrations(dir string) error {
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return fmt.Errorf("%s: failed to read migrations directory %s: %w", op, dir, err)
+		return fmt.Errorf(`'%s: failed to read migrations directory %s: %w'`, op, dir, err)
 	}
 
 	var files []string
@@ -27,12 +27,12 @@ func (s *Storage) applyMigrations(dir string) error {
 	for _, file := range files {
 		content, err := os.ReadFile(file)
 		if err != nil {
-			return fmt.Errorf("%s: failed to read migration file %s: %w", op, file, err)
+			return fmt.Errorf(`'%s: failed to read migration file %s: %w'`, op, file, err)
 		}
 
 		_, err = s.db.Exec(string(content))
 		if err != nil {
-			return fmt.Errorf("%s: failed to execute migration %s: %w", op, file, err)
+			return fmt.Errorf(`'%s: failed to execute migration %s: %w'`, op, file, err)
 		}
 	}
 

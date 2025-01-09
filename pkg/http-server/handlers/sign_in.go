@@ -30,7 +30,7 @@ func NewSignIn(handlerCtx *HandlerContext) http.HandlerFunc {
 
 		userID, userHashedPassword, err := handlerCtx.Storage.GetUser(req.Username)
 		if err != nil {
-			logger.Error("failed get user from db", slog.String("error", err.Error()))
+			logger.Error("failed to get user from db", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
