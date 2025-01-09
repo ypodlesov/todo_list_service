@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"errors"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
-	"golang.org/x/crypto/bcrypt"
-	"io"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"todo_list_service/pkg/http-server/middleware/auth"
+
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type SignUpRequest struct {
@@ -19,57 +19,51 @@ type SignUpRequest struct {
 
 func NewSignUp(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "handlers.NewSignUp"
-		log := slog.With(
-			slog.String("op", op),
-			slog.String("request_id", middleware.GetReqID(r.Context())),
-		)
+		logger := getLogger(handlerCtx.Log, "handlers.NewSignUp", middleware.GetReqID(r.Context()))
 
 		var req SignUpRequest
-		err := render.DecodeJSON(r.Body, &req)
-
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				log.Error("request body is empty")
-				render.JSON(w, r, "empty request")
-				return
-			}
-			log.Error("failed to decode request body")
-			render.JSON(w, r, "failed to decode request")
+		if err := decodeRequest(r, &req); err != nil {
+			handleDecodeError(err, w, r, logger)
+			http.Error(w, "Incorrect request", http.StatusBadRequest)
 			return
 		}
 
-		log.Info("request body decoded", slog.Any("request", req))
+		logger.Debug("request body decoded", slog.Any("request", req))
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 		if err != nil {
-			log.Error("failed to hash password", slog.Any("error", err))
+			logger.Error("failed to hash password", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
-		userID, err := handlerCtx.Storage.CreateUser(req.Username, string(hashedPassword), req.Username)
+		userID, err := handlerCtx.Storage.CreateUser(req.Username, string(hashedPassword), req.Email)
 		if err != nil {
-			log.Error("failed to create user", slog.Any("error", err))
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			logger.Error("failed to create user", slog.String("error", err.Error()))
+			if userID < 0 {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			} else {
+				render.JSON(w, r, fmt.Sprintf("user with name [%s] already exists", req.Username))
+				http.Error(w, "Incorrect request", http.StatusBadRequest)
+			}
 			return
 		}
 
 		session, err := handlerCtx.Store.Get(r, auth.SessionName)
 		if err != nil {
-			log.Error("failed to get session", slog.Any("error", err))
+			logger.Error("failed to get session", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
 		session.Values["user_id"] = userID
 		if err := session.Save(r, w); err != nil {
-			log.Error("failed to save session", slog.Any("error", err))
+			logger.Error("failed to save session", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("User signed up successfully"))
+		w.Write([]byte(fmt.Sprintf("User [%s] signed up successfully", req.Username)))
 	}
 }

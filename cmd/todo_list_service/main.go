@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"github.com/gorilla/sessions"
 	"log/slog"
 	"net/http"
 	"os"
@@ -16,6 +15,8 @@ import (
 	"todo_list_service/pkg/metrics"
 	"todo_list_service/pkg/storage/postgres"
 
+	"github.com/gorilla/sessions"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
@@ -23,9 +24,9 @@ import (
 
 func main() {
 	cfg := config.MustLoad()
-	log := slog.New(slog.NewTextHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	log.Info(
+	logger.Info(
 		"starting todo_list service",
 		slog.String("env", cfg.Env),
 		slog.String("address", cfg.HTTPServer.Address),
@@ -35,7 +36,7 @@ func main() {
 	storage, err := postgres.New(&cfg.PgConfig)
 
 	if err != nil {
-		log.Error("failed to setup storage", err)
+		logger.Error("failed to setup storage", err)
 		panic("cannot setup storage")
 	}
 
@@ -51,12 +52,12 @@ func main() {
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
-	router.Use(mwLogger.New(log))
+	router.Use(mwLogger.New(logger))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
 	handlerCtx := &handlers.HandlerContext{
-		Log:     log,
+		Log:     logger,
 		Storage: storage,
 		Store:   store,
 	}
@@ -76,7 +77,7 @@ func main() {
 		r.Post("/update_task", handlers.NewUpdateTask(handlerCtx))
 	})
 
-	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
+	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
@@ -91,30 +92,30 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Error("got error, server stopped")
+			logger.Error("got error, server stopped")
 			os.Exit(0)
 		}
 	}()
 
-	log.Info("server started")
+	logger.Info("server started")
 
 	<-done
-	log.Info("stopping server")
+	logger.Info("stopping server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Error("failed to stop server", err)
+		logger.Error("failed to stop server", err)
 		return
 	}
 
 	err = storage.Close()
 
 	if err != nil {
-		log.Error("failed to close storage", err)
+		logger.Error("failed to close storage", err)
 		return
 	}
 
-	log.Info("server stopped")
+	logger.Info("server stopped")
 }

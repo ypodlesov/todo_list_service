@@ -11,7 +11,7 @@ type Storage struct {
 	db  *sql.DB
 }
 
-func generatePgUrlFromConfig(cfg *config.PgConfig) string {
+func generateUrlFromConfig(cfg *config.PgConfig) string {
 	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DbName)
 }
 
@@ -23,7 +23,7 @@ func (s *Storage) Close() error {
 func New(cfg *config.PgConfig) (*Storage, error) {
 	const op = "storage.postgres.New"
 
-	db, err := sql.Open("postgres", generatePgUrlFromConfig(cfg))
+	db, err := sql.Open("postgres", generateUrlFromConfig(cfg))
 	if err != nil {
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
@@ -33,7 +33,6 @@ func New(cfg *config.PgConfig) (*Storage, error) {
 		cfg: cfg,
 	}
 
-	//TODO: add logger
 	if err := storage.applyMigrations(cfg.MigrationsDir); err != nil {
 		return nil, err
 	}
