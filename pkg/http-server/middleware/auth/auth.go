@@ -32,7 +32,7 @@ func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
 			return
 		}
 
-		userID, ok := session.Values["user_id"].(int)
+		userID, ok := session.Values[string(ContextUserID)].(int)
 		if !ok || userID == 0 {
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 			return

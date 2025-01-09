@@ -30,7 +30,7 @@ func handleDecodeError(err error, w http.ResponseWriter, r *http.Request, logger
 			logger.Error("request body is empty")
 			render.JSON(w, r, "Empty request")
 		} else {
-			logger.Error("failed to decode request body", err)
+			logger.Error("failed to decode request body", slog.String("error", err.Error()))
 			render.JSON(w, r, "Failed to decode request")
 		}
 	}

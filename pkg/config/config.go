@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"time"
@@ -15,8 +16,13 @@ type Config struct {
 	MetricsConfig `yaml:"metrics_config"`
 }
 
+func (server *HTTPServer) Address() string {
+	return fmt.Sprintf("%s:%d", server.Host, server.Port)
+}
+
 type HTTPServer struct {
-	Address     string        `yaml:"address" env-default:"0.0.0.0:8080"`
+	Host        string        `yaml:"host" env:"APP_HOST" env-default:"0.0.0.0"`
+	Port        int           `yaml:"port" env:"APP_PORT" env-default:"80"`
 	Timeout     time.Duration `yaml:"timeout" env-default:"4s"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env-default:"30s"`
 	Session     Session       `yaml:"session"`
@@ -28,12 +34,12 @@ type Session struct {
 	MaxAge    int    `yaml:"max_age" env-default:"604800"`
 }
 type PgConfig struct {
-	Host          string `yaml:"host" env-default:"localhost"`
-	Port          int    `yaml:"port" env-default:"5432"`
-	User          string `yaml:"user" env-default:"todo_list"`
-	Password      string `yaml:"password" env-default:"pg"`
-	DbName        string `yaml:"db_name" env-default:"todo_list"`
-	MigrationsDir string `yaml:"migrations_dir" env-default:"./migrations"`
+	Host          string `yaml:"host" env:"PG_HOST" env-default:"localhost"`
+	Port          int    `yaml:"port" env:"PG_PORT" env-default:"5432"`
+	User          string `yaml:"user" env:"PG_USER" env-default:"todo_list"`
+	Password      string `yaml:"password" env:"PG_PASSWORD" env-default:"pg"`
+	DBName        string `yaml:"db_name" env:"PG_DB_NAME" env-default:"todo_list"`
+	MigrationsDir string `yaml:"migrations_dir" env:"PG_MIGRATIONS_DIR" env-default:"/app/migrations"`
 }
 
 type MetricsConfig struct {
@@ -52,6 +58,9 @@ func MustLoad() *Config {
 
 	var cfg Config
 
+	if err := cleanenv.ReadEnv(&cfg); err != nil {
+		log.Fatalf("cannot read config: %s", err)
+	}
 	if err := cleanenv.ReadConfig(configPath, &cfg); err != nil {
 		log.Fatalf("cannot read config: %s", err)
 	}

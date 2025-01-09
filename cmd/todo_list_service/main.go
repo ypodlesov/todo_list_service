@@ -28,15 +28,17 @@ func main() {
 
 	logger.Info(
 		"starting todo_list service",
-		slog.String("env", cfg.Env),
-		slog.String("address", cfg.HTTPServer.Address),
+		slog.Any("config", *cfg),
+		slog.String("address", cfg.HTTPServer.Address()),
 	)
 
 	metrics.StartMetricsServer(&cfg.MetricsConfig)
 	storage, err := postgres.New(&cfg.PgConfig)
 
+	logger.Info("created postgres storage")
+
 	if err != nil {
-		logger.Error("failed to setup storage", err)
+		logger.Error("failed to setup storage", slog.String("error", err.Error()))
 		panic("cannot setup storage")
 	}
 
@@ -77,13 +79,12 @@ func main() {
 		r.Post("/update_task", handlers.NewUpdateTask(handlerCtx))
 	})
 
-	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
+	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address()))
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
-		Addr:         cfg.HTTPServer.Address,
 		Handler:      router,
 		ReadTimeout:  cfg.HTTPServer.Timeout,
 		WriteTimeout: cfg.HTTPServer.Timeout,
@@ -106,14 +107,14 @@ func main() {
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		logger.Error("failed to stop server", err)
+		logger.Error("failed to stop server", slog.String("error", err.Error()))
 		return
 	}
 
 	err = storage.Close()
 
 	if err != nil {
-		logger.Error("failed to close storage", err)
+		logger.Error("failed to close storage", slog.String("error", err.Error()))
 		return
 	}
 

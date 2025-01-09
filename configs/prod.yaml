@@ -1,15 +1,16 @@
 env: "prod"
 
 pg_config:
-  host: "localhost"
-  port: 5432
-  user: "timofey"
-  password: "879351"
-  db_name: "todolist-db"
-  migrations_dir: "/Users/timofey/GolandProjects/todo_list_service/pkg/storage/postgres/migrations"
+  host:
+  port:
+  user:
+  password:
+  db_name:
+  migrations_dir:
 
 http_server:
-  address: "0.0.0.0:8080"
+  host: "0.0.0.0"
+  port: 80
   timeout: 4s
   idle_timeout: 30s
   session:

@@ -6,7 +6,6 @@ import (
 
 func NewUpdateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		const op = "http-server.handlers.NewUpdateTask"
-
+		// const op = "http-server.handlers.NewUpdateTask"
 	}
 }

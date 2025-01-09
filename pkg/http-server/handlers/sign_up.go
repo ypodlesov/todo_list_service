@@ -56,7 +56,7 @@ func NewSignUp(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		session.Values["user_id"] = userID
+		session.Values[string(auth.ContextUserID)] = userID
 		if err := session.Save(r, w); err != nil {
 			logger.Error("failed to save session", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)

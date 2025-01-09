@@ -12,7 +12,7 @@ type Storage struct {
 }
 
 func generateUrlFromConfig(cfg *config.PgConfig) string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DbName)
+	return fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.DBName)
 }
 
 func (s *Storage) Close() error {

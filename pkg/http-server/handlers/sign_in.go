@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"log/slog"
 	"net/http"
 	"todo_list_service/pkg/http-server/middleware/auth"
@@ -46,14 +47,15 @@ func NewSignIn(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		session.Values[auth.ContextUserID] = userID
+		session.Values[string(auth.ContextUserID)] = userID
 		if err := session.Save(r, w); err != nil {
 			logger.Error("failed to save session", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
+		logger.Info(fmt.Sprintf("saved user_id [%d] to cookie", userID))
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("User signed up successfully"))
+		w.Write([]byte(fmt.Sprintf("User [%s] signed up successfully", req.Username)))
 	}
 }

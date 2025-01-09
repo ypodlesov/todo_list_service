@@ -8,7 +8,7 @@ import (
 func (s *Storage) GetTasks(userID int) (tasks []storage.Task, err error) {
 	const op = "storage.postgres.GetTasks"
 
-	rows, err := s.db.Query("SELECT id, title, status, creation_ts FROM users WHERE id = $1", userID)
+	rows, err := s.db.Query("SELECT id, title, status, creation_ts FROM tasks WHERE user_id = $1", userID)
 
 	if err != nil {
 		return nil, fmt.Errorf("%s: failed to get tasks for user: %w", op, err)

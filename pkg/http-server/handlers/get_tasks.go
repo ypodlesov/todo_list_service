@@ -9,19 +9,9 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type GetTasksRequest struct {
-}
-
 func NewGetTasks(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "http-server.handlers.NewGetTasks", middleware.GetReqID(r.Context()))
-
-		var req GetTasksRequest
-		if err := decodeRequest(r, &req); err != nil {
-			handleDecodeError(err, w, r, logger)
-			http.Error(w, "Incorrect request", http.StatusBadRequest)
-			return
-		}
 
 		userID, ok := r.Context().Value(auth.ContextUserID).(int)
 		if !ok {

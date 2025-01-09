@@ -1,17 +1,20 @@
 package postgres
 
-import "fmt"
+import (
+	"database/sql"
+	"fmt"
+)
 
 func (s *Storage) CreateUser(username, hashedPassword, email string) (userID int, err error) {
 	const op = "storage.postgres.CreateUser"
 
 	var cnt int
-	row := s.db.QueryRow("SELECT COUNT(*), id FROM users WHERE username = $1", username)
-	if err := row.Scan(&cnt, &userID); err != nil {
+	row := s.db.QueryRow("SELECT COUNT(*) FROM users WHERE username = $1", username)
+	if err := row.Scan(&cnt); err != nil && err != sql.ErrNoRows {
 		return -1, fmt.Errorf("%s: failed to scan user data: %w", op, err)
 	}
 	if cnt != 0 {
-		return userID, fmt.Errorf("%s: user with name [%s] already exists", op, username)
+		return 0, fmt.Errorf("%s: user with name [%s] already exists", op, username)
 	}
 
 	tx, _ := s.db.Begin()
