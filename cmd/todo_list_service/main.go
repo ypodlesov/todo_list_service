@@ -66,13 +66,13 @@ func main() {
 
 	router.Post("/sign_up", handlers.NewSignUp(handlerCtx))
 	router.Post("/sign_in", handlers.NewSignIn(handlerCtx))
-	router.Post("/logout", handlers.NewLogout(handlerCtx))
 
 	authMiddleware := auth.NewAuthMiddleware(store)
 
 	router.Group(func(r chi.Router) {
 		r.Use(authMiddleware.Middleware)
 
+		r.Post("/logout", handlers.NewLogout(handlerCtx))
 		r.Get("/get_tasks", handlers.NewGetTasks(handlerCtx))
 		r.Get("/get_task", handlers.NewGetTask(handlerCtx))
 		r.Post("/create_task", handlers.NewCreateTask(handlerCtx))
