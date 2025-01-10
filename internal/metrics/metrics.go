@@ -1,6 +1,6 @@
 package metrics
 
-import "todo_list_service/pkg/config"
+import "todo_list_service/internal/config"
 
 func StartMetricsServer(metricsConfig *config.MetricsConfig) {
 

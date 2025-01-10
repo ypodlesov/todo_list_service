@@ -16,6 +16,14 @@ env:
   APP_IMAGE: "ghcr.io/ypodlesov/todo_list_service/todo-list-image:latest"
   CONFIG_PATH: ${{ vars.CONFIG_PATH }}
 
+  APP_HOST: ${{ vars.APP_HOST }}
+  APP_PORT: ${{ vars.APP_PORT }}
+  PG_HOST: ${{ vars.PG_HOST }}
+  PG_USER: ${{ vars.PG_USER }}
+  PG_PASSWORD: ${{ secrets.PG_PASSWORD }}
+  PG_DB_NAME: ${{ vars.PG_DB_NAME }}
+  PG_MIGRATIONS_DIR: ${{ vars.PG_MIGRATIONS_DIR }}
+
 jobs:
   build:
     runs-on: self-hosted
@@ -41,7 +49,7 @@ jobs:
 
     - name: Stop running container with the same tag
       run: |
-        ssh $PROD_USERNAME@$PROD_HOST "docker ps --format '{{.ID}} {{.Image}}' | grep $APP_IMAGE | awk '{print $1}' | xargs docker stop" || true
+        ssh $PROD_USERNAME@$PROD_HOST "docker stop todo_list"
 
     - name: Run image
-      run: ssh $PROD_USERNAME@$PROD_HOST "docker run -d $APP_IMAGE"
+      run: ssh $PROD_USERNAME@$PROD_HOST "docker run -p $APP_PORT:$APP_PORT --rm --name todo_list -d $APP_IMAGE"

@@ -8,11 +8,14 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	"todo_list_service/pkg/config"
-	"todo_list_service/pkg/http-server/handlers"
-	mwLogger "todo_list_service/pkg/http-server/middleware/logger"
-	"todo_list_service/pkg/metrics"
-	"todo_list_service/pkg/storage/postgres"
+	"todo_list_service/internal/config"
+	"todo_list_service/internal/http-server/handlers"
+	"todo_list_service/internal/http-server/middleware/auth"
+	mwLogger "todo_list_service/internal/http-server/middleware/logger"
+	"todo_list_service/internal/metrics"
+	"todo_list_service/internal/storage/postgres"
+
+	"github.com/gorilla/sessions"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -21,48 +24,67 @@ import (
 
 func main() {
 	cfg := config.MustLoad()
-	log := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	log.Info(
+	logger.Info(
 		"starting todo_list service",
-		slog.String("env", cfg.Env),
-		slog.String("address", cfg.HTTPServer.Address),
+		slog.Any("config", *cfg),
+		slog.String("address", cfg.HTTPServer.Address()),
 	)
 
 	metrics.StartMetricsServer(&cfg.MetricsConfig)
 	storage, err := postgres.New(&cfg.PgConfig)
 
+	logger.Info("created postgres storage")
+
 	if err != nil {
+		logger.Error("failed to setup storage", slog.String("error", err.Error()))
 		panic("cannot setup storage")
+	}
+
+	store := sessions.NewCookieStore([]byte(cfg.Session.SecretKey))
+	store.Options = &sessions.Options{
+		Path:     "/",
+		MaxAge:   cfg.HTTPServer.Session.MaxAge,
+		HttpOnly: true,
+		Secure:   cfg.HTTPServer.Session.Secure,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.Logger)
-	router.Use(mwLogger.New(log))
+	router.Use(mwLogger.New(logger))
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
 	handlerCtx := &handlers.HandlerContext{
-		Log:     log,
+		Log:     logger,
 		Storage: storage,
+		Store:   store,
 	}
 
 	router.Post("/sign_up", handlers.NewSignUp(handlerCtx))
 	router.Post("/sign_in", handlers.NewSignIn(handlerCtx))
-	router.Post("/logout", handlers.NewLogout(handlerCtx))
-	router.Get("/get_tasks", handlers.NewGetTasks(handlerCtx))
-	router.Get("/get_task", handlers.NewGetTask(handlerCtx))
-	router.Post("/create_task", handlers.NewCreateTask(handlerCtx))
-	router.Post("/update_task", handlers.NewUpdateTask(handlerCtx))
 
-	log.Info("starting server", slog.String("address", cfg.HTTPServer.Address))
+	authMiddleware := auth.NewAuthMiddleware(store)
+
+	router.Group(func(r chi.Router) {
+		r.Use(authMiddleware.Middleware)
+
+		r.Post("/logout", handlers.NewLogout(handlerCtx))
+		r.Get("/get_tasks", handlers.NewGetTasks(handlerCtx))
+		r.Get("/get_task", handlers.NewGetTask(handlerCtx))
+		r.Post("/create_task", handlers.NewCreateTask(handlerCtx))
+		r.Post("/update_task", handlers.NewUpdateTask(handlerCtx))
+	})
+
+	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address()))
 
 	done := make(chan os.Signal, 1)
 	signal.Notify(done, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	srv := &http.Server{
-		Addr:         cfg.HTTPServer.Address,
 		Handler:      router,
 		ReadTimeout:  cfg.HTTPServer.Timeout,
 		WriteTimeout: cfg.HTTPServer.Timeout,
@@ -71,30 +93,30 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil {
-			log.Error("got error, server stopped")
+			logger.Error("got error, server stopped")
 			os.Exit(0)
 		}
 	}()
 
-	log.Info("server started")
+	logger.Info("server started")
 
 	<-done
-	log.Info("stopping server")
+	logger.Info("stopping server")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Error("failed to stop server", err)
+		logger.Error("failed to stop server", slog.String("error", err.Error()))
 		return
 	}
 
 	err = storage.Close()
 
 	if err != nil {
-		log.Error("failed to close storage", err)
+		logger.Error("failed to close storage", slog.String("error", err.Error()))
 		return
 	}
 
-	log.Info("server stopped")
+	logger.Info("server stopped")
 }

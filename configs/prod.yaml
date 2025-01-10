@@ -1,14 +1,19 @@
 env: "prod"
 
 pg_config:
-  host: "158.160.26.238"
-  port: 5432
-  user: "todo_list"
-  password: "pg"
-  db_name: "todo_list"
-  migrations_dir: "/app/migrations"
+  host:
+  port:
+  user:
+  password:
+  db_name:
+  migrations_dir:
 
 http_server:
-  address: "0.0.0.0:8080"
+  host: "0.0.0.0"
+  port: 80
   timeout: 4s
   idle_timeout: 30s
+  session:
+    secret_key: "secret_key"
+    secure: false
+    max_age: 604800

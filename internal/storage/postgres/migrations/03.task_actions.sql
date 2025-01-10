@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS task_actions (
     id SERIAL PRIMARY KEY,
-    action_type SMALLINT,
+    action_type SMALLINT, -- 0 (create task), 1 (update title), 2 (update status), 3 (update title and status)
     user_id INTEGER,
     task_id INTEGER,
     ts TIMESTAMP DEFAULT 'now'
