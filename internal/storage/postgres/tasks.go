@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"todo_list_service/pkg/storage"
+	"todo_list_service/internal/storage"
 )
 
 func (s *Storage) CreateTask(title string, userID int) (task *storage.Task, err error) {

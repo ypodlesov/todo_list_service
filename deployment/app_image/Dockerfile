@@ -6,7 +6,7 @@ WORKDIR /build
 
 COPY go.mod .
 COPY cmd ./cmd
-COPY pkg ./pkg
+COPY internal ./internal
 
 RUN go mod tidy
 RUN go build -o /bin/todo_list_service cmd/todo_list_service/main.go
@@ -37,7 +37,7 @@ ENV PG_MIGRATIONS_DIR=$PG_MIGRATIONS_DIR
 # Run app
 WORKDIR /app
 
-COPY pkg/storage/postgres/migrations $PG_MIGRATIONS_DIR
+COPY internal/storage/postgres/migrations $PG_MIGRATIONS_DIR
 COPY configs/prod.yaml $CONFIG_PATH
 
 CMD ["/bin/todo_list_service"]

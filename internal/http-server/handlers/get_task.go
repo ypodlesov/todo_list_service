@@ -5,22 +5,20 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"todo_list_service/pkg/http-server/middleware/auth"
+	"todo_list_service/internal/http-server/middleware/auth"
 
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type UpdateTaskRequest struct {
-	TaskID int    `json:"task_id"`
-	Title  string `json:"title"`
-	Status int8   `json:"status"`
+type GetTaskRequest struct {
+	TaskID int `json:"task_id"`
 }
 
-func NewUpdateTask(handlerCtx *HandlerContext) http.HandlerFunc {
+func NewGetTask(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger := getLogger(handlerCtx.Log, "http-server.handlers.NewUpdateTask", middleware.GetReqID(r.Context()))
+		logger := getLogger(handlerCtx.Log, "http-server.handlers.NewGetTask", middleware.GetReqID(r.Context()))
 
-		var req UpdateTaskRequest
+		var req GetTaskRequest
 		if err := decodeRequest(r, &req); err != nil {
 			handleDecodeError(err, w, r, logger)
 			http.Error(w, "Incorrect request", http.StatusBadRequest)
@@ -34,14 +32,14 @@ func NewUpdateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		task, err := handlerCtx.Storage.UpdateTask(req.TaskID, req.Title, req.Status, userID)
+		task, err := handlerCtx.Storage.GetTask(req.TaskID, userID)
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to update task [%d]", req.TaskID), slog.String("error", err.Error()))
+			logger.Error(fmt.Sprintf("failed to get task [%d] from db", req.TaskID), slog.String("error", err.Error()))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
 
-		respMap := map[string]interface{}{"task": *task}
+		respMap := map[string]interface{}{"task": task}
 		resultJSON, err := json.Marshal(respMap)
 		if err != nil {
 			logger.Error("cannot serialize response", slog.String("error", err.Error()))

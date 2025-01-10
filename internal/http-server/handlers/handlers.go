@@ -5,7 +5,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"todo_list_service/pkg/storage/postgres"
+	"todo_list_service/internal/storage/postgres"
 
 	"github.com/go-chi/render"
 	"github.com/gorilla/sessions"

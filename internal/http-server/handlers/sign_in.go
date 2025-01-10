@@ -4,24 +4,22 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"todo_list_service/pkg/http-server/middleware/auth"
+	"todo_list_service/internal/http-server/middleware/auth"
 
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/render"
 	"golang.org/x/crypto/bcrypt"
 )
 
-type SignUpRequest struct {
+type SignInRequest struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
-	Email    string `json:"email"`
 }
 
-func NewSignUp(handlerCtx *HandlerContext) http.HandlerFunc {
+func NewSignIn(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger := getLogger(handlerCtx.Log, "handlers.NewSignUp", middleware.GetReqID(r.Context()))
+		logger := getLogger(handlerCtx.Log, "handlers.NewSignIn", middleware.GetReqID(r.Context()))
 
-		var req SignUpRequest
+		var req SignInRequest
 		if err := decodeRequest(r, &req); err != nil {
 			handleDecodeError(err, w, r, logger)
 			http.Error(w, "Incorrect request", http.StatusBadRequest)
@@ -30,23 +28,16 @@ func NewSignUp(handlerCtx *HandlerContext) http.HandlerFunc {
 
 		logger.Debug("request body decoded", slog.Any("request", req))
 
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+		userID, userHashedPassword, err := handlerCtx.Storage.GetUser(req.Username)
 		if err != nil {
-			logger.Error("failed to hash password", slog.String("error", err.Error()))
+			logger.Error("failed to get user from db", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
-		userID, err := handlerCtx.Storage.CreateUser(req.Username, string(hashedPassword), req.Email)
-		if err != nil {
-			logger.Error("failed to create user", slog.String("error", err.Error()))
-			if userID < 0 {
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-			} else {
-				render.JSON(w, r, fmt.Sprintf("user with name [%s] already exists", req.Username))
-				http.Error(w, "Incorrect request", http.StatusBadRequest)
-			}
-			return
+		if bcrypt.CompareHashAndPassword([]byte(userHashedPassword), []byte(req.Password)) != nil {
+			logger.Error("invalid password")
+			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		}
 
 		session, err := handlerCtx.Store.Get(r, auth.SessionName)
@@ -62,8 +53,9 @@ func NewSignUp(handlerCtx *HandlerContext) http.HandlerFunc {
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
+		logger.Info(fmt.Sprintf("saved user_id [%d] to cookie", userID))
 
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(fmt.Sprintf("User [%s] signed up successfully", req.Username)))
 	}
 }

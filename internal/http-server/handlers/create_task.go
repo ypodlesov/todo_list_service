@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
-	"todo_list_service/pkg/http-server/middleware/auth"
+	"todo_list_service/internal/http-server/middleware/auth"
 
 	"github.com/go-chi/chi/v5/middleware"
 )

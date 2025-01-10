@@ -8,12 +8,12 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
-	"todo_list_service/pkg/config"
-	"todo_list_service/pkg/http-server/handlers"
-	"todo_list_service/pkg/http-server/middleware/auth"
-	mwLogger "todo_list_service/pkg/http-server/middleware/logger"
-	"todo_list_service/pkg/metrics"
-	"todo_list_service/pkg/storage/postgres"
+	"todo_list_service/internal/config"
+	"todo_list_service/internal/http-server/handlers"
+	"todo_list_service/internal/http-server/middleware/auth"
+	mwLogger "todo_list_service/internal/http-server/middleware/logger"
+	"todo_list_service/internal/metrics"
+	"todo_list_service/internal/storage/postgres"
 
 	"github.com/gorilla/sessions"
 

@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"todo_list_service/pkg/config"
+	"todo_list_service/internal/config"
 )
 
 type Storage struct {
