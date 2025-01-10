@@ -21,6 +21,14 @@ func NewLogout(handlerCtx *HandlerContext) http.HandlerFunc {
 		}
 
 		userID := session.Values[string(auth.ContextUserID)]
+
+		user, err := handlerCtx.Storage.GetUserByID(userID.(int))
+		if err != nil {
+			logger.Error("failed to get user from db", slog.String("error", err.Error()))
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			return
+		}
+
 		delete(session.Values, string(auth.ContextUserID))
 
 		if err := session.Save(r, w); err != nil {
@@ -30,6 +38,6 @@ func NewLogout(handlerCtx *HandlerContext) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fmt.Sprintf("User [%d] logged out successfully", userID)))
+		w.Write([]byte(fmt.Sprintf("User [%s] logged out successfully", user.Username)))
 	}
 }
