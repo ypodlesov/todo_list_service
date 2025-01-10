@@ -77,6 +77,7 @@ func main() {
 		r.Get("/get_task", handlers.NewGetTask(handlerCtx))
 		r.Post("/create_task", handlers.NewCreateTask(handlerCtx))
 		r.Post("/update_task", handlers.NewUpdateTask(handlerCtx))
+		r.Post("/update_priority", handlers.NewUpdatePriority(handlerCtx))
 	})
 
 	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address()))

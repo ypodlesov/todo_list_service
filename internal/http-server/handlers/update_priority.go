@@ -11,35 +11,40 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-type UpdateTaskRequest struct {
-	Task storage.Task `json:"task"`
+type UpdatePriorityRequest struct {
+	TargetTask       storage.Task `json:"target_task"`
+	PrevTaskPriority int          `json:"prev_task_priority"`
+	NextTaskPriority int          `json:"next_task_priority"`
 }
 
-func NewUpdateTask(handlerCtx *HandlerContext) http.HandlerFunc {
+func NewUpdatePriority(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "http-server.handlers.NewUpdateTask", middleware.GetReqID(r.Context()))
 
-		var req UpdateTaskRequest
+		var req UpdatePriorityRequest
 		if err := decodeRequest(r, &req); err != nil {
 			handleDecodeError(err, w, r, logger)
 			http.Error(w, "Incorrect request", http.StatusBadRequest)
 			return
 		}
 
-		updatedTask := &req.Task
-
 		userID, ok := r.Context().Value(auth.ContextUserID).(int)
-		if !ok {
-			logger.Error("failed to get [user_id] from session")
+		if !ok || req.TargetTask.UserID != userID {
+			logger.Error("failed to get or got incorrect [user_id] from session")
 			http.Error(w, "Incorrect request", http.StatusBadRequest)
 			return
 		}
+		if req.PrevTaskPriority == storage.MaxInt {
+			req.TargetTask.Priority = req.NextTaskPriority + storage.TaskPriorityDelta
+		} else if req.PrevTaskPriority == storage.MinInt {
+			req.TargetTask.Priority = req.PrevTaskPriority - storage.TaskPriorityDelta
+		} else {
+			req.TargetTask.Priority = (req.PrevTaskPriority + req.NextTaskPriority) / 2
+		}
 
-		updatedTask.UserID = userID
-
-		task, err := handlerCtx.Storage.UpdateTask(updatedTask)
+		task, err := handlerCtx.Storage.UpdateTaskPriority(req.TargetTask.ID, req.TargetTask.UserID, req.TargetTask.Priority)
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to update task [%d]", req.Task.ID), slog.String("error", err.Error()))
+			logger.Error(fmt.Sprintf("failed to update task [%d]", req.TargetTask.ID), slog.String("error", err.Error()))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}
