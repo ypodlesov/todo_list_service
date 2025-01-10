@@ -9,6 +9,15 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+// @Summary		Logout
+// @Description	Logout
+// @ID				logout
+// @Accept			json
+// @Produce		json
+// @Success		201		{object}	string	"ok"
+// @Failure		400		{string}	string						"incorrect request"
+// @Failure		500		{string}	string						"internal server error"
+// @Router			/logout [post]
 func NewLogout(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "handlers.NewLogout", middleware.GetReqID(r.Context()))

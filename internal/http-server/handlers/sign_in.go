@@ -15,6 +15,16 @@ type SignInRequest struct {
 	Password string `json:"password"`
 }
 
+// @Summary		Sign in for user by username and password
+// @Description	Sign in for user by username and password
+// @ID				sign-in
+// @Accept			json
+// @Produce		json
+// @Param			request	body		handlers.SignInRequest		true	"request scheme"
+// @Success		201		{string}	string	"ok"
+// @Failure		400		{string}	string						"incorrect request"
+// @Failure		500		{string}	string						"internal server error"
+// @Router			/sign_in [post]
 func NewSignIn(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "handlers.NewSignIn", middleware.GetReqID(r.Context()))

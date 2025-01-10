@@ -17,6 +17,16 @@ type SignUpRequest struct {
 	Email    string `json:"email"`
 }
 
+// @Summary		Sign up for new user by username, password, email
+// @Description	Sign up for new user by username, password, email
+// @ID				sign-up
+// @Accept			json
+// @Produce		json
+// @Param			request	body		handlers.SignUpRequest		true	"request scheme"
+// @Success		201		{string}	string	"ok"
+// @Failure		400		{string}	string						"incorrect request"
+// @Failure		500		{string}	string						"internal server error"
+// @Router			/sign_up [post]
 func NewSignUp(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "handlers.NewSignUp", middleware.GetReqID(r.Context()))

@@ -15,6 +15,20 @@ type CreateTaskRequest struct {
 	Task storage.Task `json:"task"`
 }
 
+type CreateTaskResponse struct {
+	Task storage.Task `json:"task"`
+}
+
+//	@Summary		Create new task
+//	@Description	Create new task
+//	@ID				create-task
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		handlers.CreateTaskRequest	true	"request scheme"
+//	@Success		201		{object}	handlers.CreateTaskResponse	"ok"
+//	@Failure		400		{string}	string						"incorrect request"
+//	@Failure		500		{string}	string						"internal server error"
+//	@Router			/create_task [post]
 func NewCreateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "http-server.handlers.NewCreateTask", middleware.GetReqID(r.Context()))
@@ -41,8 +55,8 @@ func NewCreateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		respMap := map[string]interface{}{"task": *task}
-		resultJSON, err := json.Marshal(respMap)
+		response := CreateTaskResponse{Task: *task}
+		resultJSON, err := json.Marshal(response)
 		if err != nil {
 			logger.Error("cannot serialize response", slog.String("error", err.Error()))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

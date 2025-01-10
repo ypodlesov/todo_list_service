@@ -1,0 +1,319 @@
+basePath: /
+definitions:
+  handlers.CreateTaskRequest:
+    properties:
+      task:
+        $ref: '#/definitions/storage.Task'
+    type: object
+  handlers.CreateTaskResponse:
+    properties:
+      task:
+        $ref: '#/definitions/storage.Task'
+    type: object
+  handlers.GetTaskRequest:
+    properties:
+      task_id:
+        type: integer
+    type: object
+  handlers.GetTaskResponse:
+    properties:
+      task:
+        $ref: '#/definitions/storage.Task'
+    type: object
+  handlers.GetTasksResponse:
+    properties:
+      tasks:
+        items:
+          $ref: '#/definitions/storage.Task'
+        type: array
+    type: object
+  handlers.SignInRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  handlers.SignUpRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  handlers.UpdatePriorityRequest:
+    properties:
+      next_task_priority:
+        type: integer
+      prev_task_priority:
+        type: integer
+      target_task:
+        $ref: '#/definitions/storage.Task'
+    type: object
+  handlers.UpdatePriorityResponse:
+    properties:
+      task:
+        $ref: '#/definitions/storage.Task'
+    type: object
+  handlers.UpdateTaskRequest:
+    properties:
+      task:
+        $ref: '#/definitions/storage.Task'
+    type: object
+  handlers.UpdateTaskResponse:
+    properties:
+      task:
+        $ref: '#/definitions/storage.Task'
+    type: object
+  storage.Task:
+    properties:
+      creation_ts:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      priority:
+        type: integer
+      status:
+        type: integer
+      title:
+        type: string
+      user_id:
+        type: integer
+    type: object
+host: todo-list
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample server Petstore server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Swagger API
+  version: "2.0"
+paths:
+  /create_task:
+    post:
+      consumes:
+      - application/json
+      description: Create new task
+      operationId: create-task
+      parameters:
+      - description: request scheme
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            $ref: '#/definitions/handlers.CreateTaskResponse'
+        "400":
+          description: incorrect request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Create new task
+  /get_task:
+    get:
+      consumes:
+      - application/json
+      description: Get task by task_id
+      operationId: get-task
+      parameters:
+      - description: request scheme
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.GetTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            $ref: '#/definitions/handlers.GetTaskResponse'
+        "400":
+          description: incorrect request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Get task by task_id
+  /get_tasks:
+    get:
+      consumes:
+      - application/json
+      description: Get all tasks ordered by priority (desc) for certain user
+      operationId: get-tasks
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            $ref: '#/definitions/handlers.GetTasksResponse'
+        "400":
+          description: incorrect request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Get all tasks ordered by priority (desc) for certain user
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout
+      operationId: logout
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: incorrect request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Logout
+  /sign_in:
+    post:
+      consumes:
+      - application/json
+      description: Sign in for user by username and password
+      operationId: sign-in
+      parameters:
+      - description: request scheme
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SignInRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: incorrect request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Sign in for user by username and password
+  /sign_up:
+    post:
+      consumes:
+      - application/json
+      description: Sign up for new user by username, password, email
+      operationId: sign-up
+      parameters:
+      - description: request scheme
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: incorrect request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Sign up for new user by username, password, email
+  /update_priority:
+    post:
+      consumes:
+      - application/json
+      description: Update task priority
+      operationId: update-priority
+      parameters:
+      - description: request scheme
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdatePriorityRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            $ref: '#/definitions/handlers.UpdatePriorityResponse'
+        "400":
+          description: incorrect request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Update task priority
+  /update_task:
+    post:
+      consumes:
+      - application/json
+      description: Update task
+      operationId: update-task
+      parameters:
+      - description: request scheme
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handlers.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: ok
+          schema:
+            $ref: '#/definitions/handlers.UpdateTaskResponse'
+        "400":
+          description: incorrect request
+          schema:
+            type: string
+        "500":
+          description: internal server error
+          schema:
+            type: string
+      summary: Update task
+swagger: "2.0"

@@ -10,6 +10,19 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
+type GetTasksResponse struct {
+	Tasks []storage.Task `json:"tasks"`
+}
+
+// @Summary		Get all tasks ordered by priority (desc) for certain user
+// @Description	Get all tasks ordered by priority (desc) for certain user
+// @ID				get-tasks
+// @Accept			json
+// @Produce		json
+// @Success		201	{object}	handlers.GetTasksResponse	"ok"
+// @Failure		400	{string}	string						"incorrect request"
+// @Failure		500	{string}	string						"internal server error"
+// @Router			/get_tasks [get]
 func NewGetTasks(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "http-server.handlers.NewGetTasks", middleware.GetReqID(r.Context()))
@@ -28,8 +41,10 @@ func NewGetTasks(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		respMap := map[string]interface{}{"tasks": tasks}
-		tasksJSON, err := json.Marshal(respMap)
+		response := GetTasksResponse{
+			Tasks: tasks,
+		}
+		tasksJSON, err := json.Marshal(response)
 		if err != nil {
 			logger.Error("cannot serialize response", slog.String("error", err.Error()))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)

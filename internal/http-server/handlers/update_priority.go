@@ -17,6 +17,20 @@ type UpdatePriorityRequest struct {
 	NextTaskPriority int          `json:"next_task_priority"`
 }
 
+type UpdatePriorityResponse struct {
+	Task storage.Task `json:"task"`
+}
+
+// @Summary		Update task priority
+// @Description	Update task priority
+// @ID				update-priority
+// @Accept			json
+// @Produce		json
+// @Param			request	body		handlers.UpdatePriorityRequest		true	"request scheme"
+// @Success		201		{object}	handlers.UpdatePriorityResponse	"ok"
+// @Failure		400		{string}	string						"incorrect request"
+// @Failure		500		{string}	string						"internal server error"
+// @Router			/update_priority [post]
 func NewUpdatePriority(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "http-server.handlers.NewUpdateTask", middleware.GetReqID(r.Context()))
@@ -49,8 +63,8 @@ func NewUpdatePriority(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		respMap := map[string]interface{}{"task": *task}
-		resultJSON, err := json.Marshal(respMap)
+		response := UpdatePriorityResponse{Task: *task}
+		resultJSON, err := json.Marshal(response)
 		if err != nil {
 			logger.Error("cannot serialize response", slog.String("error", err.Error()))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
