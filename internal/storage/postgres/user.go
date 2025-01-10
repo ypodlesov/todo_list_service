@@ -3,6 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
+	"todo_list_service/internal/storage"
 )
 
 func (s *Storage) CreateUser(username, hashedPassword, email string) (userID int, err error) {
@@ -39,12 +40,31 @@ func (s *Storage) CreateUser(username, hashedPassword, email string) (userID int
 	return
 }
 
-func (s *Storage) GetUser(username string) (userID int, hashedPassword string, err error) {
+func (s *Storage) GetUserByUsername(username string) (user *storage.User, err error) {
 	const op = "storage.postgres.GetUser"
 
-	row := s.db.QueryRow("SELECT id, password FROM users WHERE username = $1", username)
-	if err := row.Scan(&userID, &hashedPassword); err != nil {
-		return -1, "", fmt.Errorf(`'%s: failed to scan user data: %w'`, op, err)
+	user = &storage.User{
+		Username: username,
+	}
+
+	row := s.db.QueryRow("SELECT id, password, email, creation_ts FROM users WHERE username = $1", username)
+	if err := row.Scan(&user.ID, &user.Password, &user.Email, &user.CreationTs); err != nil {
+		return nil, fmt.Errorf(`'%s: failed to get user by username from db: %w'`, op, err)
+	}
+
+	return
+}
+
+func (s *Storage) GetUserByID(userID int) (user *storage.User, err error) {
+	const op = "storage.postgres.GetUserByID"
+
+	user = &storage.User{
+		ID: userID,
+	}
+
+	row := s.db.QueryRow("SELECT username, password, email, creation_ts FROM users WHERE id = $1", userID)
+	if err := row.Scan(&user.Username, &user.Password, &user.Email, &user.CreationTs); err != nil {
+		return nil, fmt.Errorf(`'%s: failed to get user by id from db: %w'`, op, err)
 	}
 
 	return

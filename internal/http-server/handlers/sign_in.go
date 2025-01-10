@@ -28,14 +28,14 @@ func NewSignIn(handlerCtx *HandlerContext) http.HandlerFunc {
 
 		logger.Debug("request body decoded", slog.Any("request", req))
 
-		userID, userHashedPassword, err := handlerCtx.Storage.GetUser(req.Username)
+		user, err := handlerCtx.Storage.GetUserByUsername(req.Username)
 		if err != nil {
 			logger.Error("failed to get user from db", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 
-		if bcrypt.CompareHashAndPassword([]byte(userHashedPassword), []byte(req.Password)) != nil {
+		if bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)) != nil {
 			logger.Error("invalid password")
 			http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		}
@@ -43,19 +43,21 @@ func NewSignIn(handlerCtx *HandlerContext) http.HandlerFunc {
 		session, err := handlerCtx.Store.Get(r, auth.SessionName)
 		if err != nil {
 			logger.Error("failed to get session", slog.String("error", err.Error()))
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			http.Error(w, "Internal Server Error", http.StatusUnauthorized)
 			return
 		}
 
-		session.Values[string(auth.ContextUserID)] = userID
+		session.Values[string(auth.ContextUserID)] = user.ID
 		if err := session.Save(r, w); err != nil {
 			logger.Error("failed to save session", slog.String("error", err.Error()))
 			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
-		logger.Info(fmt.Sprintf("saved user_id [%d] to cookie", userID))
+		logger.Info(fmt.Sprintf("saved user_id [%d] to cookie", user.ID))
+
+		creationTime := user.CreationTs.Format("2006-01-02 15:04:05")
 
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(fmt.Sprintf("User [%s] signed up successfully", req.Username)))
+		w.Write([]byte(fmt.Sprintf(`User '%s' signed up successfully at '%s'`, user.Username, creationTime)))
 	}
 }
