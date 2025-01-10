@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - '**'
+
   pull_request:
     branches:
       - '**'
@@ -49,7 +50,7 @@ jobs:
 
     - name: Stop running container with the same tag
       run: |
-        ssh $PROD_USERNAME@$PROD_HOST "docker stop todo_list"
+        ssh $PROD_USERNAME@$PROD_HOST "docker stop todo_list" || true
 
     - name: Run image
       run: ssh $PROD_USERNAME@$PROD_HOST "docker run -p $APP_PORT:$APP_PORT --rm --name todo_list -d $APP_IMAGE"
