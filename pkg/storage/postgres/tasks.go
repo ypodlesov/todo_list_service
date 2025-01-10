@@ -16,18 +16,30 @@ func (s *Storage) CreateTask(title string, userID int) (task *storage.Task, err 
 
 	tx, _ := s.db.Begin()
 
-	stmt, err := tx.Prepare(`INSERT INTO tasks (title, status, user_id) VALUES ($1, $2, $3)
+	createTaskStmt, err := tx.Prepare(`INSERT INTO tasks (title, status, user_id) VALUES ($1, $2, $3)
 							 RETURNING id, title, status, user_id, creation_ts`)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, fmt.Errorf(`'%s: failed to prepare query: %w'`, op, err)
 	}
-	defer stmt.Close()
+	defer createTaskStmt.Close()
 
 	task = &storage.Task{}
 
-	err = stmt.QueryRow(title, 1, userID).Scan(&task.Id, &task.Title, &task.Status, &task.UserID, &task.CreationTs)
+	err = createTaskStmt.QueryRow(title, 1, userID).Scan(&task.Id, &task.Title, &task.Status, &task.UserID, &task.CreationTs)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, fmt.Errorf(`'%s: failed to execute query: %w'`, op, err)
+	}
+
+	insertActionStmt, err := tx.Prepare(ConstructInsertActionQuery())
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, fmt.Errorf(`'%s: failed to prepare query: %w'`, op, err)
+	}
+	defer insertActionStmt.Close()
+
+	if _, err = insertActionStmt.Exec(0, userID, task.Id); err != nil {
 		_ = tx.Rollback()
 		return nil, fmt.Errorf(`'%s: failed to execute query: %w'`, op, err)
 	}
@@ -39,7 +51,7 @@ func (s *Storage) CreateTask(title string, userID int) (task *storage.Task, err 
 	return
 }
 
-func ConstructUpdateQuery(taskID int, taskTitle string, taskStatus int8) (int, string) {
+func ConstructUpdateTaskQuery(taskTitle string, taskStatus int8) (int8, string) {
 	hasTitle := len(taskTitle) > 0
 
 	returningStmt := "RETURNING id, title, status, user_id, creation_ts"
@@ -55,12 +67,16 @@ func ConstructUpdateQuery(taskID int, taskTitle string, taskStatus int8) (int, s
 	}
 }
 
+func ConstructInsertActionQuery() string {
+	return `INSERT INTO task_actions (action_type, user_id, task_id) VALUES ($1, $2, $3)`
+}
+
 func (s *Storage) UpdateTask(taskID int, taskTitle string, taskStatus int8, userID int) (task *storage.Task, err error) {
 	const op = "storage.postgres.UpdateTask"
 
 	task = &storage.Task{}
 
-	updateType, query := ConstructUpdateQuery(taskID, taskTitle, taskStatus)
+	updateType, query := ConstructUpdateTaskQuery(taskTitle, taskStatus)
 
 	if updateType == UpdateNothing {
 		return task, nil
@@ -68,24 +84,36 @@ func (s *Storage) UpdateTask(taskID int, taskTitle string, taskStatus int8, user
 
 	tx, _ := s.db.Begin()
 
-	stmt, err := tx.Prepare(query)
+	updateStmt, err := tx.Prepare(query)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, fmt.Errorf(`'%s: failed to prepare query: %w'`, op, err)
 	}
-	defer stmt.Close()
+	defer updateStmt.Close()
 
 	var res *sql.Row
 	if updateType == UpdateTaskTitleType {
-		res = stmt.QueryRow(taskTitle, taskID, userID)
+		res = updateStmt.QueryRow(taskTitle, taskID, userID)
 	} else if updateType == UpdateTaskStatusType {
-		res = stmt.QueryRow(taskStatus, taskID, userID)
+		res = updateStmt.QueryRow(taskStatus, taskID, userID)
 	} else {
-		res = stmt.QueryRow(taskTitle, taskStatus, taskID, userID)
+		res = updateStmt.QueryRow(taskTitle, taskStatus, taskID, userID)
 	}
 
 	err = res.Scan(&task.Id, &task.Title, &task.Status, &task.UserID, &task.CreationTs)
 	if err != nil {
+		_ = tx.Rollback()
+		return nil, fmt.Errorf(`'%s: failed to execute query: %w'`, op, err)
+	}
+
+	insertStmt, err := tx.Prepare(ConstructInsertActionQuery())
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, fmt.Errorf(`'%s: failed to prepare query: %w'`, op, err)
+	}
+	defer insertStmt.Close()
+
+	if _, err = insertStmt.Exec(updateType, userID, taskID); err != nil {
 		_ = tx.Rollback()
 		return nil, fmt.Errorf(`'%s: failed to execute query: %w'`, op, err)
 	}
