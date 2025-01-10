@@ -6,14 +6,13 @@ import (
 	"log/slog"
 	"net/http"
 	"todo_list_service/internal/http-server/middleware/auth"
+	"todo_list_service/internal/storage"
 
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 type UpdateTaskRequest struct {
-	TaskID int    `json:"task_id"`
-	Title  string `json:"title"`
-	Status int8   `json:"status"`
+	Task storage.Task `json:"task"`
 }
 
 func NewUpdateTask(handlerCtx *HandlerContext) http.HandlerFunc {
@@ -27,6 +26,8 @@ func NewUpdateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
+		updatedTask := &req.Task
+
 		userID, ok := r.Context().Value(auth.ContextUserID).(int)
 		if !ok {
 			logger.Error("failed to get [user_id] from session")
@@ -34,9 +35,11 @@ func NewUpdateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		task, err := handlerCtx.Storage.UpdateTask(req.TaskID, req.Title, req.Status, userID)
+		updatedTask.UserID = userID
+
+		task, err := handlerCtx.Storage.UpdateTask(updatedTask)
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to update task [%d]", req.TaskID), slog.String("error", err.Error()))
+			logger.Error(fmt.Sprintf("failed to update task [%d]", req.Task.ID), slog.String("error", err.Error()))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}

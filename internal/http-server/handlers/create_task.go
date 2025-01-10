@@ -6,12 +6,13 @@ import (
 	"log/slog"
 	"net/http"
 	"todo_list_service/internal/http-server/middleware/auth"
+	"todo_list_service/internal/storage"
 
 	"github.com/go-chi/chi/v5/middleware"
 )
 
 type CreateTaskRequest struct {
-	Title string `json:"title"`
+	Task storage.Task `json:"task"`
 }
 
 func NewCreateTask(handlerCtx *HandlerContext) http.HandlerFunc {
@@ -31,10 +32,11 @@ func NewCreateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 			http.Error(w, "Incorrect request", http.StatusBadRequest)
 			return
 		}
+		req.Task.UserID = userID
 
-		task, err := handlerCtx.Storage.CreateTask(req.Title, userID)
+		task, err := handlerCtx.Storage.CreateTask(&req.Task)
 		if err != nil {
-			logger.Error(fmt.Sprintf("failed to create task [%s]", req.Title), slog.String("error", err.Error()))
+			logger.Error(fmt.Sprintf("failed to create task [%s]", req.Task.Title), slog.String("error", err.Error()))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
 			return
 		}

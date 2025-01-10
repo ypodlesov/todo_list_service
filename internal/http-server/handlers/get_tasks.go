@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"net/http"
 	"todo_list_service/internal/http-server/middleware/auth"
+	"todo_list_service/internal/storage"
 
 	"github.com/go-chi/chi/v5/middleware"
 )
@@ -20,7 +21,7 @@ func NewGetTasks(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		tasks, err := handlerCtx.Storage.GetTasks(userID)
+		tasks, err := handlerCtx.Storage.GetTasks(userID, storage.MaxInt)
 		if err != nil {
 			logger.Error("failed to get tasks from db", slog.String("error", err.Error()))
 			http.Error(w, "Internal server error", http.StatusInternalServerError)
