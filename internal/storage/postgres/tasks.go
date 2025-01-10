@@ -40,8 +40,8 @@ func (s *Storage) CreateTask(newTask *storage.Task) (task *storage.Task, err err
 
 	task = &storage.Task{}
 
-	queryRes := createTaskStmt.QueryRow(newTask.Title, newTask.Description, storage.TaskStatusOpened, maxPriority+storage.TaskPriorityCreatedDelta, newTask.UserID)
-	err = queryRes.Scan(&task.ID, &task.Title, &task.Status, &task.UserID, &task.CreationTs)
+	queryRes := createTaskStmt.QueryRow(newTask.Title, newTask.Description, storage.TaskStatusOpened, maxPriority+storage.TaskPriorityDelta, newTask.UserID)
+	err = queryRes.Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.Priority, &task.UserID, &task.CreationTs)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, fmt.Errorf(`'%s: failed to execute query: %w'`, op, err)
@@ -66,12 +66,54 @@ func (s *Storage) CreateTask(newTask *storage.Task) (task *storage.Task, err err
 	return
 }
 
+func (s *Storage) UpdateTaskPriority(taskID, userID, priority int) (*storage.Task, error) {
+	const op = "storage.postgres.UpdateTaskPriority"
+
+	query := `UPDATE tasks SET priority = $1 WHERE user_id = $2 AND id = $3
+			  RETURNING id, title, description, status, priority, user_id, creation_ts`
+
+	tx, _ := s.db.Begin()
+
+	updateStmt, err := tx.Prepare(query)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, fmt.Errorf(`'%s: failed to prepare query: %w'`, op, err)
+	}
+	defer updateStmt.Close()
+
+	task := &storage.Task{}
+
+	queryRes := updateStmt.QueryRow(priority, userID, taskID)
+	err = queryRes.Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.Priority, &task.UserID, &task.CreationTs)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, fmt.Errorf(`'%s: failed to execute query: %w'`, op, err)
+	}
+
+	insertStmt, err := tx.Prepare(`INSERT INTO task_actions (action_type, user_id, task_id) VALUES ($1, $2, $3)`)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, fmt.Errorf(`'%s: failed to prepare query: %w'`, op, err)
+	}
+	defer insertStmt.Close()
+
+	if _, err = insertStmt.Exec(storage.UpdateTaskPriorityType, task.UserID, task.ID); err != nil {
+		_ = tx.Rollback()
+		return nil, fmt.Errorf(`'%s: failed to execute query: %w'`, op, err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return nil, fmt.Errorf(`'%s: failed to commit transaction: %w'`, op, err)
+	}
+
+	return task, nil
+}
+
 func (s *Storage) UpdateTask(updatedTask *storage.Task) (*storage.Task, error) {
 	const op = "storage.postgres.UpdateTask"
 
-	priority := updatedTask.Priority
 	if updatedTask.Status == storage.TaskStatusClosed {
-		priority = storage.TaskPriorityClosed
+		updatedTask.Priority = storage.TaskPriorityClosed
 	}
 
 	query := `UPDATE tasks SET title = $1, description = $2, status = $3, priority = $4 WHERE user_id = $5 AND id = $6
@@ -88,7 +130,7 @@ func (s *Storage) UpdateTask(updatedTask *storage.Task) (*storage.Task, error) {
 
 	task := &storage.Task{}
 
-	queryRes := updateStmt.QueryRow(updatedTask.Title, updatedTask.Description, updatedTask.Status, priority, updatedTask.UserID, updatedTask.ID)
+	queryRes := updateStmt.QueryRow(updatedTask.Title, updatedTask.Description, updatedTask.Status, updatedTask.Priority, updatedTask.UserID, updatedTask.ID)
 	err = queryRes.Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.Priority, &task.UserID, &task.CreationTs)
 	if err != nil {
 		_ = tx.Rollback()
@@ -155,7 +197,7 @@ func (s *Storage) GetTasks(userID, limit int) (tasks []storage.Task, err error) 
 			task := storage.Task{
 				UserID: userID,
 			}
-			if err := rows.Scan(&task.ID, &task.Title, &task.Priority, &task.Status, &task.Priority, &task.CreationTs); err != nil {
+			if err := rows.Scan(&task.ID, &task.Title, &task.Description, &task.Status, &task.Priority, &task.CreationTs); err != nil {
 				return nil, fmt.Errorf(`'%s: failed to read task: %w'`, op, err)
 			}
 			tasks = append(tasks, task)

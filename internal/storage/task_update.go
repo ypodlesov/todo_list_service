@@ -1,4 +1,7 @@
 package storage
 
-const CreateTaskType = 0
-const UpdateTaskType = 1
+const (
+	CreateTaskType         = 0
+	UpdateTaskType         = 1
+	UpdateTaskPriorityType = 2
+)

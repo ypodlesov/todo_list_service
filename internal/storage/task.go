@@ -3,14 +3,14 @@ package storage
 import "time"
 
 const (
-	MinInt = ^int(^uint(0) >> 1)
-	MaxInt = int(^uint(0) >> 1)
+	MinInt = -2147483648
+	MaxInt = 2147483647
 
 	TaskStatusOpened = 1
 	TaskStatusClosed = 2
 
-	TaskPriorityCreatedDelta = 10000
-	TaskPriorityClosed       = MinInt
+	TaskPriorityDelta  = 1000000
+	TaskPriorityClosed = MinInt
 )
 
 type Task struct {
