@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS tasks (
     id SERIAL PRIMARY KEY,
     title VARCHAR(1024),
-    status SMALLINT,
+    status SMALLINT, -- 1 (opened), 2 (closed)
     user_id INTEGER,
     creation_ts TIMESTAMP DEFAULT 'now'
 );

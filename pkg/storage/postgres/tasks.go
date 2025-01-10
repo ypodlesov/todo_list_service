@@ -6,11 +6,6 @@ import (
 	"todo_list_service/pkg/storage"
 )
 
-const UpdateNothing = 0
-const UpdateTaskTitleType = 1
-const UpdateTaskStatusType = 2
-const UpdateTaskTitleStatusType = 3
-
 func (s *Storage) CreateTask(title string, userID int) (task *storage.Task, err error) {
 	const op = "storage.postgres.CreateTask"
 
@@ -26,7 +21,7 @@ func (s *Storage) CreateTask(title string, userID int) (task *storage.Task, err 
 
 	task = &storage.Task{}
 
-	err = createTaskStmt.QueryRow(title, 1, userID).Scan(&task.Id, &task.Title, &task.Status, &task.UserID, &task.CreationTs)
+	err = createTaskStmt.QueryRow(title, storage.TaskStatusOpened, userID).Scan(&task.Id, &task.Title, &task.Status, &task.UserID, &task.CreationTs)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, fmt.Errorf(`'%s: failed to execute query: %w'`, op, err)
@@ -57,13 +52,13 @@ func ConstructUpdateTaskQuery(taskTitle string, taskStatus int8) (int8, string) 
 	returningStmt := "RETURNING id, title, status, user_id, creation_ts"
 
 	if hasTitle && taskStatus > 0 {
-		return UpdateTaskTitleStatusType, fmt.Sprintf(`UPDATE tasks SET title = $1, status = $2 WHERE id = $3 AND user_id = $4 %s`, returningStmt)
+		return storage.UpdateTaskTitleStatusType, fmt.Sprintf(`UPDATE tasks SET title = $1, status = $2 WHERE id = $3 AND user_id = $4 %s`, returningStmt)
 	} else if hasTitle {
-		return UpdateTaskTitleType, fmt.Sprintf(`UPDATE tasks SET title = $1 WHERE id = $2 AND user_id = $3 %s`, returningStmt)
+		return storage.UpdateTaskTitleType, fmt.Sprintf(`UPDATE tasks SET title = $1 WHERE id = $2 AND user_id = $3 %s`, returningStmt)
 	} else if taskStatus > 0 {
-		return UpdateTaskStatusType, fmt.Sprintf(`UPDATE tasks SET status = $1 WHERE id = $2 AND user_id = $3 %s`, returningStmt)
+		return storage.UpdateTaskStatusType, fmt.Sprintf(`UPDATE tasks SET status = $1 WHERE id = $2 AND user_id = $3 %s`, returningStmt)
 	} else {
-		return UpdateNothing, ``
+		return storage.UpdateNothingType, ``
 	}
 }
 
@@ -78,7 +73,7 @@ func (s *Storage) UpdateTask(taskID int, taskTitle string, taskStatus int8, user
 
 	updateType, query := ConstructUpdateTaskQuery(taskTitle, taskStatus)
 
-	if updateType == UpdateNothing {
+	if updateType == storage.UpdateNothingType {
 		return task, nil
 	}
 
@@ -92,9 +87,9 @@ func (s *Storage) UpdateTask(taskID int, taskTitle string, taskStatus int8, user
 	defer updateStmt.Close()
 
 	var res *sql.Row
-	if updateType == UpdateTaskTitleType {
+	if updateType == storage.UpdateTaskTitleType {
 		res = updateStmt.QueryRow(taskTitle, taskID, userID)
-	} else if updateType == UpdateTaskStatusType {
+	} else if updateType == storage.UpdateTaskStatusType {
 		res = updateStmt.QueryRow(taskStatus, taskID, userID)
 	} else {
 		res = updateStmt.QueryRow(taskTitle, taskStatus, taskID, userID)
