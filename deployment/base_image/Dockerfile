@@ -10,6 +10,9 @@ RUN apt-get install -y \
     sudo \
     && rm -rf /var/lib/apt/lists/*
 
+ENV TZ Europe/Moscow
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
 RUN apt-get update
 
 # installing go
@@ -23,8 +26,3 @@ ENV PATH="/usr/local/go/bin:${PATH}"
 
 ARG BASE_IMAGE_DIR
 ENV BASE_IMAGE_DIR=$BASE_IMAGE_DIR
-
-COPY $BASE_IMAGE_DIR/tg_bot_api_install.sh /
-RUN chmod +x /tg_bot_api_install.sh
-RUN /tg_bot_api_install.sh
-RUN rm -rf /tg_bot_api_install.sh
