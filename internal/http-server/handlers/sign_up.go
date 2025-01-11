@@ -23,7 +23,7 @@ type SignUpRequest struct {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		handlers.SignUpRequest		true	"request scheme"
-// @Success		201		{string}	string	"ok"
+// @Success		201		{string}	string	"created"
 // @Failure		400		{string}	string						"incorrect request"
 // @Failure		500		{string}	string						"internal server error"
 // @Router			/sign_up [post]

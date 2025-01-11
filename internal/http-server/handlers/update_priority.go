@@ -27,7 +27,7 @@ type UpdatePriorityResponse struct {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		handlers.UpdatePriorityRequest		true	"request scheme"
-// @Success		201		{object}	handlers.UpdatePriorityResponse	"ok"
+// @Success		200		{object}	handlers.UpdatePriorityResponse	"ok"
 // @Failure		400		{string}	string						"incorrect request"
 // @Failure		500		{string}	string						"internal server error"
 // @Router			/update_priority [post]
@@ -52,7 +52,7 @@ func NewUpdatePriority(handlerCtx *HandlerContext) http.HandlerFunc {
 		}
 		if req.PrevTaskPriority == storage.MaxInt {
 			req.TargetTask.Priority = req.NextTaskPriority + storage.TaskPriorityDelta
-		} else if req.PrevTaskPriority == storage.MinInt {
+		} else if req.NextTaskPriority == storage.MinInt {
 			req.TargetTask.Priority = req.PrevTaskPriority - storage.TaskPriorityDelta
 		} else {
 			req.TargetTask.Priority = (req.PrevTaskPriority + req.NextTaskPriority) / 2

@@ -48,7 +48,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "ok",
+                        "description": "created",
                         "schema": {
                             "$ref": "#/definitions/handlers.CreateTaskResponse"
                         }
@@ -91,7 +91,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "ok",
                         "schema": {
                             "$ref": "#/definitions/handlers.GetTaskResponse"
@@ -124,7 +124,7 @@ const docTemplate = `{
                 "summary": "Get all tasks ordered by priority (desc) for certain user",
                 "operationId": "get-tasks",
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "ok",
                         "schema": {
                             "$ref": "#/definitions/handlers.GetTasksResponse"
@@ -157,7 +157,7 @@ const docTemplate = `{
                 "summary": "Logout",
                 "operationId": "logout",
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "ok",
                         "schema": {
                             "type": "string"
@@ -201,7 +201,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "ok",
                         "schema": {
                             "type": "string"
@@ -246,7 +246,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "201": {
-                        "description": "ok",
+                        "description": "created",
                         "schema": {
                             "type": "string"
                         }
@@ -289,7 +289,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "ok",
                         "schema": {
                             "$ref": "#/definitions/handlers.UpdatePriorityResponse"
@@ -333,7 +333,7 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
+                    "200": {
                         "description": "ok",
                         "schema": {
                             "$ref": "#/definitions/handlers.UpdateTaskResponse"

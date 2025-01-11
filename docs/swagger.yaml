@@ -95,7 +95,7 @@ info:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   termsOfService: http://swagger.io/terms/
-  title: Swagger API
+  title: Swagger Example API
   version: "2.0"
 paths:
   /create_task:
@@ -115,7 +115,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: ok
+          description: created
           schema:
             $ref: '#/definitions/handlers.CreateTaskResponse'
         "400":
@@ -143,7 +143,7 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: ok
           schema:
             $ref: '#/definitions/handlers.GetTaskResponse'
@@ -165,7 +165,7 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: ok
           schema:
             $ref: '#/definitions/handlers.GetTasksResponse'
@@ -187,7 +187,7 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: ok
           schema:
             type: string
@@ -216,7 +216,7 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: ok
           schema:
             type: string
@@ -246,7 +246,7 @@ paths:
       - application/json
       responses:
         "201":
-          description: ok
+          description: created
           schema:
             type: string
         "400":
@@ -274,7 +274,7 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: ok
           schema:
             $ref: '#/definitions/handlers.UpdatePriorityResponse'
@@ -303,7 +303,7 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
+        "200":
           description: ok
           schema:
             $ref: '#/definitions/handlers.UpdateTaskResponse'

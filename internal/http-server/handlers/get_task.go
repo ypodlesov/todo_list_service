@@ -25,7 +25,7 @@ type GetTaskResponse struct {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		handlers.GetTaskRequest		true	"request scheme"
-// @Success		201		{object}	handlers.GetTaskResponse	"ok"
+// @Success		200		{object}	handlers.GetTaskResponse	"ok"
 // @Failure		400		{string}	string						"incorrect request"
 // @Failure		500		{string}	string						"internal server error"
 // @Router			/get_task [get]

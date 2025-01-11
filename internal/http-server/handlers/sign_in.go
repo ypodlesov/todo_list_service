@@ -21,7 +21,7 @@ type SignInRequest struct {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		handlers.SignInRequest		true	"request scheme"
-// @Success		201		{string}	string	"ok"
+// @Success		200		{string}	string	"ok"
 // @Failure		400		{string}	string						"incorrect request"
 // @Failure		500		{string}	string						"internal server error"
 // @Router			/sign_in [post]

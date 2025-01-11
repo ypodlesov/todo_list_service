@@ -14,7 +14,7 @@ import (
 // @ID				logout
 // @Accept			json
 // @Produce		json
-// @Success		201		{object}	string	"ok"
+// @Success		200		{object}	string	"ok"
 // @Failure		400		{string}	string						"incorrect request"
 // @Failure		500		{string}	string						"internal server error"
 // @Router			/logout [post]

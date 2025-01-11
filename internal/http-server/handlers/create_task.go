@@ -25,7 +25,7 @@ type CreateTaskResponse struct {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		handlers.CreateTaskRequest	true	"request scheme"
-// @Success		201		{object}	handlers.CreateTaskResponse	"ok"
+// @Success		201		{object}	handlers.CreateTaskResponse	"created"
 // @Failure		400		{string}	string						"incorrect request"
 // @Failure		500		{string}	string						"internal server error"
 // @Router			/create_task [post]

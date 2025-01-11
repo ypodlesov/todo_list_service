@@ -74,7 +74,7 @@ func main() {
 	router.Use(middleware.URLFormat)
 
 	corsMiddleware := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"}, // Adjust to your frontend's URL
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
@@ -98,11 +98,12 @@ func main() {
 		r.Use(authMiddleware.Middleware)
 
 		r.Post("/logout", handlers.NewLogout(handlerCtx))
-		r.Get("/get_tasks", handlers.NewGetTasks(handlerCtx))
-		r.Get("/get_task", handlers.NewGetTask(handlerCtx))
 		r.Post("/create_task", handlers.NewCreateTask(handlerCtx))
 		r.Post("/update_task", handlers.NewUpdateTask(handlerCtx))
 		r.Post("/update_priority", handlers.NewUpdatePriority(handlerCtx))
+
+		r.Get("/get_tasks", handlers.NewGetTasks(handlerCtx))
+		r.Get("/get_task", handlers.NewGetTask(handlerCtx))
 	})
 
 	logger.Info("starting server", slog.String("address", cfg.HTTPServer.Address()))

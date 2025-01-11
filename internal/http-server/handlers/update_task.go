@@ -25,7 +25,7 @@ type UpdateTaskResponse struct {
 // @Accept			json
 // @Produce		json
 // @Param			request	body		handlers.UpdateTaskRequest		true	"request scheme"
-// @Success		201		{object}	handlers.UpdateTaskResponse	"ok"
+// @Success		200		{object}	handlers.UpdateTaskResponse	"ok"
 // @Failure		400		{string}	string						"incorrect request"
 // @Failure		500		{string}	string						"internal server error"
 // @Router			/update_task [post]

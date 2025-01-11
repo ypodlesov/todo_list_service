@@ -19,7 +19,7 @@ type GetTasksResponse struct {
 // @ID				get-tasks
 // @Accept			json
 // @Produce		json
-// @Success		201	{object}	handlers.GetTasksResponse	"ok"
+// @Success		200	{object}	handlers.GetTasksResponse	"ok"
 // @Failure		400	{string}	string						"incorrect request"
 // @Failure		500	{string}	string						"internal server error"
 // @Router			/get_tasks [get]
