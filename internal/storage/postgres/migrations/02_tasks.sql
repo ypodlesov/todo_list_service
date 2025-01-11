@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     status SMALLINT, -- 1 (opened), 2 (closed)
     priority INTEGER,
     user_id INTEGER,
-    creation_ts TIMESTAMP DEFAULT 'now'
+    creation_ts TIMESTAMP DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS tasks_user_id_idx ON tasks (user_id);
