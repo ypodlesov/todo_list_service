@@ -19,16 +19,16 @@ type CreateTaskResponse struct {
 	Task storage.Task `json:"task"`
 }
 
-//	@Summary		Create new task
-//	@Description	Create new task
-//	@ID				create-task
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		handlers.CreateTaskRequest	true	"request scheme"
-//	@Success		201		{object}	handlers.CreateTaskResponse	"ok"
-//	@Failure		400		{string}	string						"incorrect request"
-//	@Failure		500		{string}	string						"internal server error"
-//	@Router			/create_task [post]
+// @Summary		Create new task
+// @Description	Create new task
+// @ID				create-task
+// @Accept			json
+// @Produce		json
+// @Param			request	body		handlers.CreateTaskRequest	true	"request scheme"
+// @Success		201		{object}	handlers.CreateTaskResponse	"ok"
+// @Failure		400		{string}	string						"incorrect request"
+// @Failure		500		{string}	string						"internal server error"
+// @Router			/create_task [post]
 func NewCreateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger := getLogger(handlerCtx.Log, "http-server.handlers.NewCreateTask", middleware.GetReqID(r.Context()))
@@ -39,6 +39,8 @@ func NewCreateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 			http.Error(w, "Incorrect request", http.StatusBadRequest)
 			return
 		}
+
+		logger.Info("request body decoded", slog.Any("request", req))
 
 		userID, ok := r.Context().Value(auth.ContextUserID).(int)
 		if !ok {

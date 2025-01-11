@@ -38,6 +38,8 @@ func NewSignUp(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
+		logger.Info("request body decoded", slog.Any("request", req))
+
 		logger.Debug("request body decoded", slog.Any("request", req))
 
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)

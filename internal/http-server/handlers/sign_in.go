@@ -36,7 +36,7 @@ func NewSignIn(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
-		logger.Debug("request body decoded", slog.Any("request", req))
+		logger.Info("request body decoded", slog.Any("request", req))
 
 		user, err := handlerCtx.Storage.GetUserByUsername(req.Username)
 		if err != nil {

@@ -40,6 +40,8 @@ func NewGetTask(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
+		logger.Info("request body decoded", slog.Any("request", req))
+
 		userID, ok := r.Context().Value(auth.ContextUserID).(int)
 		if !ok {
 			logger.Error("failed to get [user_id] from session")

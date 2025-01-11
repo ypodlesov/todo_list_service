@@ -42,6 +42,8 @@ func NewUpdatePriority(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
+		logger.Info("request body decoded", slog.Any("request", req))
+
 		userID, ok := r.Context().Value(auth.ContextUserID).(int)
 		if !ok || req.TargetTask.UserID != userID {
 			logger.Error("failed to get or got incorrect [user_id] from session")

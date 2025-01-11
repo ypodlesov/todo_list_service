@@ -40,6 +40,8 @@ func NewUpdateTask(handlerCtx *HandlerContext) http.HandlerFunc {
 			return
 		}
 
+		logger.Info("request body decoded", slog.Any("request", req))
+
 		updatedTask := &req.Task
 
 		userID, ok := r.Context().Value(auth.ContextUserID).(int)
